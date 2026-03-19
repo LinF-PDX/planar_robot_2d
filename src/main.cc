@@ -1,6 +1,5 @@
 #include "robot_model.hpp"
 #include <iostream>
-#include <cmath>
 
 int main() {
     // Create a robot model with link lengths of 1.0 and 1.0
@@ -12,10 +11,8 @@ int main() {
 
     // Compute forward kinematics
     double x, y;
-    robot.forwardKinematics(x, y);
+    robot.forwardKinematics(x, y, q);
 
-    double x_com1, y_com1;
-    double x_com2, y_com2;
     Eigen::Vector2d com1 = robot.getCOM1Position(q);
     Eigen::Vector2d com2 = robot.getCOM2Position(q);
 
