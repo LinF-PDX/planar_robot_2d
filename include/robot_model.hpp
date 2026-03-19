@@ -5,11 +5,13 @@
 class RobotModel {
 public:
     RobotModel(double link1_length, double link2_length, double link1_mass, double link2_mass);
-    void setJointAngles(double q1, double q2);
     void forwardKinematics(double& x, double& y) const;
 
-    Eigen::Vector2d getCOM1Position() const;
-    Eigen::Vector2d getCOM2Position() const;
+    Eigen::Vector2d getCOM1Position(const Eigen::Vector2d& q) const;
+    Eigen::Vector2d getCOM2Position(const Eigen::Vector2d& q) const;
+    Eigen::Matrix2d getMassMatrix(const Eigen::Vector2d& q) const;
+    Eigen::Vector2d getGravityVector(const Eigen::Vector2d& q) const;
+    Eigen::Vector2d getCoriolisVector(const Eigen::Vector2d& q, const Eigen::Vector2d& qdot) const;
 
 private:
     const double l1_; // Length of the first link
@@ -24,4 +26,6 @@ private:
 
     double q1_; // Joint angle of the first link
     double q2_; // Joint angle of the second link
+    double q1_dot_; // Joint velocity of the first link
+    double q2_dot_; // Joint velocity of the second link
 };

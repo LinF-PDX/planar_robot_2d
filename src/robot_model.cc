@@ -16,10 +16,7 @@ RobotModel::RobotModel(double link1_length, double link2_length, double link1_ma
         q2_(0.0) {
 }
 
-void RobotModel::setJointAngles(double q1, double q2) {
-    q1_ = q1;
-    q2_ = q2;
-}
+
 
 void RobotModel::forwardKinematics(double& x, double& y) const {
     // Compute the position of the end-effector using forward kinematics
@@ -27,16 +24,16 @@ void RobotModel::forwardKinematics(double& x, double& y) const {
     y = l1_ * std::sin(q1_) + l2_ * std::sin(q1_ + q2_);
 }
 
-Eigen::Vector2d RobotModel::getCOM1Position() const {
+Eigen::Vector2d RobotModel::getCOM1Position(const Eigen::Vector2d& q) const {
     // Compute the position of the center of mass of the first link
-    double x = lc1_ * std::cos(q1_);
-    double y = lc1_ * std::sin(q1_);
+    double x = lc1_ * std::cos(q(0));
+    double y = lc1_ * std::sin(q(0));
     return Eigen::Vector2d(x, y);
 }
 
-Eigen::Vector2d RobotModel::getCOM2Position() const {
+Eigen::Vector2d RobotModel::getCOM2Position(const Eigen::Vector2d& q) const {
     // Compute the position of the center of mass of the second link
-    double x = l1_ * std::cos(q1_) + lc2_ * std::cos(q1_ + q2_);
-    double y = l1_ * std::sin(q1_) + lc2_ * std::sin(q1_ + q2_);
+    double x = l1_ * std::cos(q(0)) + lc2_ * std::cos(q(0) + q(1));
+    double y = l1_ * std::sin(q(0)) + lc2_ * std::sin(q(0) + q(1));
     return Eigen::Vector2d(x, y);
 }

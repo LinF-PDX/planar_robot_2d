@@ -7,9 +7,8 @@ int main() {
     RobotModel robot(1.0, 1.0, 1.0, 1.0);
 
     // Set joint angles (in radians)
-    double q1 = M_PI/2;
-    double q2 = 0;
-    robot.setJointAngles(q1, q2);
+    Eigen::Vector2d q;
+    q << M_PI/2, 0;
 
     // Compute forward kinematics
     double x, y;
@@ -17,8 +16,8 @@ int main() {
 
     double x_com1, y_com1;
     double x_com2, y_com2;
-    Eigen::Vector2d com1 = robot.getCOM1Position();
-    Eigen::Vector2d com2 = robot.getCOM2Position();
+    Eigen::Vector2d com1 = robot.getCOM1Position(q);
+    Eigen::Vector2d com2 = robot.getCOM2Position(q);
 
     // Print the end-effector position
     std::cout << "End-effector position: (" << x << ", " << y << ")" << std::endl;
