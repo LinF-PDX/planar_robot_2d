@@ -6,7 +6,8 @@
 class RobotModel {
 public:
     RobotModel(double link1_length, double link2_length, double link1_mass, double link2_mass);
-    void forwardKinematics(double& x, double& y,const Eigen::Vector2d& q) const;
+    void forwardKinematics(double& x, double& y, const Eigen::Vector2d q) const;
+    void inverseKinematics(double x, double y, Eigen::Vector2d& q) const;
 
     Eigen::Vector2d getCOM1Position(const Eigen::Vector2d& q) const;
     Eigen::Vector2d getCOM2Position(const Eigen::Vector2d& q) const;

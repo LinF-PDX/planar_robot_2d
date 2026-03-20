@@ -15,12 +15,46 @@ RobotModel::RobotModel(double link1_length, double link2_length, double link1_ma
         q2_(0.0) {
 }
 
-
-
-void RobotModel::forwardKinematics(double& x, double& y, const Eigen::Vector2d& q) const {
+void RobotModel::forwardKinematics(double& x, double& y, const Eigen::Vector2d q) const {
     // Compute the position of the end-effector using forward kinematics
+    // Given q, find x and y
     x = l1_ * std::cos(q(0)) + l2_ * std::cos(q(0) + q(1));
     y = l1_ * std::sin(q(0)) + l2_ * std::sin(q(0) + q(1));
+}
+
+void RobotModel::inverseKinematics(double x, double y, Eigen::Vector2d& q) const {
+    // Compute the joint angles using inverse kinematics
+    // Given x and y, find q
+
+    // Check if the target position is reachable
+    double q1_temp, q1_temp2, q2_temp, q2_temp2;
+    double distance = std::sqrt(x * x + y * y);
+    if (distance > l1_ + l2_ || distance < std::abs(l1_ - l2_) || (x < 0)) {
+        throw std::runtime_error("Target position is out of reach");
+    }
+    double c2 = (x * x + y * y - l1_ * l1_ - l2_ * l2_) / (2 * l1_ * l2_);
+
+    // Clamp c2 to the valid range [-1, 1] to avoid numerical issues with acos
+    c2 = std::max(-1.0, std::min(1.0, c2));
+
+    // Two possible solutions for q2
+    q2_temp = std::acos(c2);
+    q2_temp2 = -std::acos(c2);
+
+    // Two possible solutions for q1
+    q1_temp = std::atan2(y, x) - std::atan2(l2_ * std::sin(q2_temp), l1_ + l2_ * std::cos(q2_temp));
+    q1_temp2 = std::atan2(y, x) - std::atan2(l2_ * std::sin(q2_temp2), l1_ + l2_ * std::cos(q2_temp2));
+
+    // Reject invalid solutions
+    if (-M_PI / 2 <= q1_temp && q1_temp <= M_PI / 2) {
+        q(0) = q1_temp;
+        q(1) = q2_temp;
+    } else if (-M_PI / 2 <= q1_temp2 && q1_temp2 <= M_PI / 2) {
+        q(0) = q1_temp2;
+        q(1) = q2_temp2;
+    } else {
+        throw std::runtime_error("No valid joint angles found for the target position");
+    }
 }
 
 Eigen::Vector2d RobotModel::getCOM1Position(const Eigen::Vector2d& q) const {
