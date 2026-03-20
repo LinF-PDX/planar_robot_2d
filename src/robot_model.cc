@@ -50,11 +50,11 @@ Eigen::Matrix2d RobotModel::getMassMatrix(const Eigen::Vector2d& q) const {
 
 Eigen::Vector2d RobotModel::getGravityVector(const Eigen::Vector2d& q) const {
     // Compute the gravity vector of the robot
-    double s1 = std::sin(q(0));
-    double s12 = std::sin(q(0) + q(1));
+    double c1 = std::cos(q(0));
+    double c2 = std::cos(q(0) + q(1));
     Eigen::Vector2d G;
-    G(0) = (m1_ * lc1_ + m2_ * l1_) * g_ * s1 + m2_ * lc2_ * g_ * s12;
-    G(1) = m2_ * lc2_ * g_ * s12;
+    G(0) = (m1_ * lc1_ + m2_ * l1_) * g_ * c1 + m2_ * lc2_ * g_ * c2;
+    G(1) = m2_ * lc2_ * g_ * c2;
     return G;
 }
 
