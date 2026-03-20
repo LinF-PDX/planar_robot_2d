@@ -7,7 +7,7 @@ int main() {
 
     // Set joint angles (in radians)
     Eigen::Vector2d q;
-    q << M_PI/2, 0;
+    q << M_PI/2, -M_PI/2;
 
     // Compute forward kinematics
     double x, y;

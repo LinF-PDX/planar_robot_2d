@@ -1,6 +1,6 @@
 // Declare robot model class
 #pragma once
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 #include <cmath>
 
 class RobotModel {
