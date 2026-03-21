@@ -5,24 +5,28 @@
 int main() {
     // Create a robot model with link lengths of 1.0 and 1.0
     RobotModel robot(1.0, 1.0, 1.0, 1.0);
-    Simulator sim(0.001);
+    Simulator sim(0.0001);
 
     RobotState state;
-    state.q << -M_PI/4, M_PI/4; // Initial joint angles
+    state.q << 0.0, 0.0; // Initial joint angles
     state.qdot << 0.0, 0.0; // Initial joint velocities
     state.time = 0.0; // Initial time
 
     Eigen::Vector2d tau;
     tau << 0.0, 0.0;
 
-    for (int i = 0; i < 10000; ++i) {
+    for (int i = 0; i < 100000; ++i) {
+        //tau(0) = robot.getGravityVector(state.q)(0) + robot.getCoriolisVector(state.q, state.qdot)(0); 
+        //tau(1) = robot.getGravityVector(state.q)(1) + robot.getCoriolisVector(state.q, state.qdot)(1);
         sim.stepSimulation(robot, tau, state);
+        double E = robot.getTotalEnergy(state.q, state.qdot);
 
         // Only print every 1000 steps to reduce output
-        if (i % 10 == 0) {
+        if (i % 10000 == 0) {
             std::cout << "t = " << state.time
                       << ", q in degree = [" << state.q(0) * 180 / M_PI << ", " << state.q(1) * 180 / M_PI << "]"
                       << ", qdot in degree/sec = [" << state.qdot(0) * 180 / M_PI << ", " << state.qdot(1) * 180 / M_PI << "]"
+                      << ", Total Energy = " << E
                       << std::endl;
         }
     }

@@ -112,3 +112,18 @@ Eigen::Vector2d RobotModel::forwardDynamics(const Eigen::Vector2d& q,
     qddot = M.inverse() * (tau - C - G);
     return qddot;
 }
+
+double RobotModel::getTotalEnergy(const Eigen::Vector2d& q, const Eigen::Vector2d& qdot) const {
+    // Compute the total energy of the robot (kinetic + potential)
+
+    // Kinetic energy
+    Eigen::Matrix2d M = getMassMatrix(q);
+    double kinetic_energy = 0.5 * qdot.transpose() * M * qdot;
+    
+    // Potential energy
+    Eigen::Vector2d com1 = getCOM1Position(q);
+    Eigen::Vector2d com2 = getCOM2Position(q);
+    double potential_energy = m1_ * g_ * com1.y() + m2_ * g_ * com2.y();
+
+    return kinetic_energy + potential_energy;
+}

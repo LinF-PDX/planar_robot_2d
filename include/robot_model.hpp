@@ -11,7 +11,7 @@ public:
 
     Eigen::Vector2d getCOM1Position(const Eigen::Vector2d& q) const;
     Eigen::Vector2d getCOM2Position(const Eigen::Vector2d& q) const;
-    
+
     Eigen::Matrix2d getMassMatrix(const Eigen::Vector2d& q) const;
     Eigen::Vector2d getGravityVector(const Eigen::Vector2d& q) const;
     Eigen::Vector2d getCoriolisVector(const Eigen::Vector2d& q, const Eigen::Vector2d& qdot) const;
@@ -19,6 +19,8 @@ public:
     Eigen::Vector2d forwardDynamics(const Eigen::Vector2d& q, 
                                     const Eigen::Vector2d& qdot, 
                                     const Eigen::Vector2d& tau) const;
+
+    double getTotalEnergy(const Eigen::Vector2d& q, const Eigen::Vector2d& qdot) const;
 
 private:
     const double l1_; // Length of the first link
