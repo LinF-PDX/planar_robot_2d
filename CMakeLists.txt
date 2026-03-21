@@ -9,6 +9,7 @@ find_package(Eigen3 REQUIRED NO_MODULE)
 add_executable(planar_robot
     src/main.cc
     src/robot_model.cc
+    src/simulator.cc
 )
 
 target_include_directories(planar_robot PRIVATE include)

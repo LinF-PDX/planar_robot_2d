@@ -100,3 +100,15 @@ Eigen::Vector2d RobotModel::getCoriolisVector(const Eigen::Vector2d& q, const Ei
     C(1) = h * qdot(0) * qdot(0);
     return C;
 }
+
+Eigen::Vector2d RobotModel::forwardDynamics(const Eigen::Vector2d& q, 
+                                            const Eigen::Vector2d& qdot, 
+                                            const Eigen::Vector2d& tau) const {
+    // Compute the joint accelerations using forward dynamics
+    Eigen::Vector2d qddot;
+    Eigen::Matrix2d M = getMassMatrix(q);
+    Eigen::Vector2d C = getCoriolisVector(q, qdot);
+    Eigen::Vector2d G = getGravityVector(q);
+    qddot = M.inverse() * (tau - C - G);
+    return qddot;
+}
