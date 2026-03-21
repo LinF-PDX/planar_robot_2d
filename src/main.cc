@@ -5,16 +5,12 @@ int main() {
     // Create a robot model with link lengths of 1.0 and 1.0
     RobotModel robot(1.0, 1.0, 1.0, 1.0);
 
-    // Set joint angles (in radians)
-    Eigen::Vector2d q;
-    //q << M_PI/2, 0;
-
     // Compute inverse kinematics
     double x, y;
-    x = 2.0;
-    y = 0;
+    x = std::sqrt(3);
+    y = -1.0;
     //robot.forwardKinematics(x, y, q);
-    robot.inverseKinematics(x, y, q);
+    Eigen::Vector2d q = robot.inverseKinematics(x, y);
 
     Eigen::Vector2d com1 = robot.getCOM1Position(q);
     Eigen::Vector2d com2 = robot.getCOM2Position(q);

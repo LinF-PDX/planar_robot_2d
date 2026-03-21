@@ -10,19 +10,19 @@ RobotModel::RobotModel(double link1_length, double link2_length, double link1_ma
         lc2_(link2_length / 2.0),
         I1_((1.0 / 12.0) * link1_mass * link1_length * link1_length),
         I2_((1.0 / 12.0) * link2_mass * link2_length * link2_length),
-        g_(9.81),
-        q1_(0.0), 
-        q2_(0.0) {
+        g_(9.81) {
 }
 
-void RobotModel::forwardKinematics(double& x, double& y, const Eigen::Vector2d q) const {
+Eigen::Vector2d RobotModel::forwardKinematics(const Eigen::Vector2d& q) const {
     // Compute the position of the end-effector using forward kinematics
     // Given q, find x and y
+    double x, y;
     x = l1_ * std::cos(q(0)) + l2_ * std::cos(q(0) + q(1));
     y = l1_ * std::sin(q(0)) + l2_ * std::sin(q(0) + q(1));
+    return Eigen::Vector2d(x, y);
 }
 
-void RobotModel::inverseKinematics(double x, double y, Eigen::Vector2d& q) const {
+Eigen::Vector2d RobotModel::inverseKinematics(double x, double y) const {
     // Compute the joint angles using inverse kinematics
     // Given x and y, find q
 
@@ -47,11 +47,9 @@ void RobotModel::inverseKinematics(double x, double y, Eigen::Vector2d& q) const
 
     // Reject invalid solutions
     if (-M_PI / 2 <= q1_temp && q1_temp <= M_PI / 2) {
-        q(0) = q1_temp;
-        q(1) = q2_temp;
+        return Eigen::Vector2d(q1_temp, q2_temp);
     } else if (-M_PI / 2 <= q1_temp2 && q1_temp2 <= M_PI / 2) {
-        q(0) = q1_temp2;
-        q(1) = q2_temp2;
+        return Eigen::Vector2d(q1_temp2, q2_temp2);
     } else {
         throw std::runtime_error("No valid joint angles found for the target position");
     }
