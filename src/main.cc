@@ -9,7 +9,7 @@ int main() {
 
     RobotState state;
     state.q << 0.0, 0.0; // Initial joint angles
-    state.qdot << 0.0, 0.0; // Initial joint velocities
+    state.qdot << 0.1, 0.0; // Initial joint velocities
     state.time = 0.0; // Initial time
 
     Eigen::Vector2d tau;
