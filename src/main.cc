@@ -7,15 +7,17 @@ int main() {
     RobotModel robot(1.0, 1.0, 1.0, 1.0);
     Simulator sim(0.0001);
     const double log_interval = 0.01;
-    double q1_deg;
-    double q2_deg;
-    double q1dot_deg;
-    double q2dot_deg;
 
     RobotState state;
     state.q << -M_PI/6, 0.0;
     state.qdot << 0.0, 0.0;
     state.time = 0.0;
+
+    // Convert radians to degrees for logging
+    double q1_deg = state.q(0) * 180 / M_PI;
+    double q2_deg = state.q(1) * 180 / M_PI;
+    double q1dot_deg = state.qdot(0) * 180 / M_PI;
+    double q2dot_deg = state.qdot(1) * 180 / M_PI;
 
     Eigen::Vector2d tau;
     tau << 0.0, 0.0;
@@ -27,15 +29,13 @@ int main() {
 
     // Write first log entry
     double next_log_time = 0.0;
-    logger.writeRow({state.time, state.q(0), state.q(1), state.qdot(0), state.qdot(1),
-                     xy(0), xy(1), tau(0), tau(1)});
+    logger.writeRow({state.time, q1_deg, q2_deg, q1dot_deg, q2dot_deg, xy(0), xy(1), tau(0), tau(1)});
     next_log_time += log_interval;
 
     for (int i = 0; i < 100000; ++i) {
         sim.stepSimulation(robot, tau, state);
         xy = robot.forwardKinematics(state.q);
 
-        // Convert radians to degrees for logging
         q1_deg = state.q(0) * 180 / M_PI;
         q2_deg = state.q(1) * 180 / M_PI;
         q1dot_deg = state.qdot(0) * 180 / M_PI;
