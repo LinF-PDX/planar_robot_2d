@@ -93,7 +93,6 @@ Eigen::Vector2d RobotModel::getGravityVector(const Eigen::Vector2d& q) const {
 Eigen::Vector2d RobotModel::getCoriolisVector(const Eigen::Vector2d& q, const Eigen::Vector2d& qdot) const {
     // Compute the Coriolis vector of the robot
     double s2 = std::sin(q(1));
-    double c2 = std::cos(q(1));
     double h = m2_ * l1_ * lc2_ * s2;
     Eigen::Vector2d C;
     C(0) = -h * qdot(1) * (2 * qdot(0) + qdot(1));
