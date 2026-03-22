@@ -16,9 +16,11 @@ The current codebase includes:
 .
 |-- CMakeLists.txt
 |-- include/
+|   |-- logger.hpp
 |   |-- robot_model.hpp
 |   `-- simulator.hpp
 `-- src/
+    |-- logger.cc
     |-- main.cc
     |-- robot_model.cc
     `-- simulator.cc
@@ -64,9 +66,57 @@ The program in `src/main.cc` currently:
    - joint velocities `qdot = [0, 0]`
 4. Applies zero joint torque `tau = [0, 0]`
 5. Simulates `100000` steps
-6. Prints the state and total energy every `10000` steps
+6. Logs data to a timestamped text file in `data/`
+7. Prints the state to the console every `10000` steps
 
 This makes the current executable a useful baseline for checking dynamic behavior and energy consistency of the simulator.
+
+## Logger Usage
+
+The logger is declared in `include/logger.hpp` and can be used directly from `main.cc`.
+
+To use it:
+
+1. Include the header:
+
+```cpp
+#include "logger.hpp"
+```
+
+2. Create a logger with an output folder and column names:
+
+```cpp
+SignalLogger logger(
+    "data",
+    {"time", "q1", "q2", "q1dot", "q2dot", "x", "y", "tau1", "tau2"});
+```
+
+3. Write rows wherever you want to record data:
+
+```cpp
+logger.writeRow({state.time, state.q(0), state.q(1), state.qdot(0), state.qdot(1),
+                 xy(0), xy(1), tau(0), tau(1)});
+```
+
+4. Run the program:
+
+```bash
+./build/planar_robot
+```
+
+Each run creates a new space-delimited log file in `data/` with a comment-style header, for example:
+
+```text
+data/simulation_20260322_155853_214.txt
+```
+
+The current log columns are:
+
+```text
+time q1 q2 q1dot q2dot x y tau1 tau2
+```
+
+This format is intended to work well with `gnuplot` and is easy to extend later with additional signals such as `q_ref`, `qdot_ref`, `x_ref`, or `y_ref`.
 
 ## Main Components
 

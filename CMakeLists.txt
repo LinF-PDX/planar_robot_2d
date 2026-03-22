@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Eigen3 REQUIRED NO_MODULE)
 
 add_executable(planar_robot
+    src/logger.cc
     src/main.cc
     src/robot_model.cc
     src/simulator.cc
