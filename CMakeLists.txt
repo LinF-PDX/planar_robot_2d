@@ -11,6 +11,7 @@ add_executable(planar_robot
     src/main.cc
     src/robot_model.cc
     src/simulator.cc
+    src/controller.cc
 )
 
 target_include_directories(planar_robot PRIVATE include)

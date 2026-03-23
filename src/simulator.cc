@@ -43,7 +43,3 @@ void Simulator::stepSimulation(const RobotModel& robot, const Eigen::Vector2d& t
     // Update time
     state.time += h;
 }
-
-double Simulator::getTimeStep() const {
-    return dt_;
-}

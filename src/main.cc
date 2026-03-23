@@ -1,7 +1,7 @@
 #include <iostream>
 #include "logger.hpp"
-#include "robot_model.hpp"
 #include "simulator.hpp"
+#include "controller.hpp"
 
 int main() {
     RobotModel robot(1.0, 1.0, 1.0, 1.0);
@@ -11,7 +11,6 @@ int main() {
     RobotState state;
     state.q << -M_PI/6, 0.0;
     state.qdot << 0.0, 0.0;
-    state.time = 0.0;
 
     // Convert radians to degrees for logging
     double q1_deg = state.q(0) * 180 / M_PI;
