@@ -9,8 +9,9 @@ struct RobotState {
 };
 
 struct DesiredRobotState {
-    Eigen::Vector2d q_desired = Eigen::Vector2d::Zero(); // Desired joint angles
-    Eigen::Vector2d qdot_desired = Eigen::Vector2d::Zero(); // Desired joint velocities
+    Eigen::Vector2d q_d = Eigen::Vector2d::Zero(); // Desired joint angles
+    Eigen::Vector2d qdot_d = Eigen::Vector2d::Zero(); // Desired joint velocities
+    Eigen::Vector2d q_d_prev = Eigen::Vector2d::Zero(); // Previous desired joint angles (for numerical differentiation)
 };
 
 class Simulator {
