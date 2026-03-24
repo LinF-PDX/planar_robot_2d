@@ -5,10 +5,11 @@
 #include "scenarios.hpp"
 
 namespace {
+    constexpr ScenarioMode kScenarioMode = ScenarioMode::FREE_SPACE_MOTION;
     constexpr double kSimulationTotalTimeSec = 5.0;
     constexpr double kSimulationTimeStep = 1e-4;
     constexpr double kSimulationLogInterval = 1e-2;
-    constexpr int kSimulationTotalSteps = static_cast<int>(kSimulationTotalTimeSec / kSimulationTimeStep);
+    constexpr double KSimulationTotalSteps = static_cast<int>(kSimulationTotalTimeSec / kSimulationTimeStep);
 
     constexpr double kRobotLink1Length = 1.0;
     constexpr double kRobotLink2Length = 1.0;
@@ -24,12 +25,16 @@ int main() {
     RobotModel robot(kRobotLink1Length, kRobotLink2Length, kRobotLink1Mass, kRobotLink2Mass);
     Simulator sim(kSimulationTimeStep);
     Controller controller(kKp, kKd, kTauMax);
+    const ScenarioConfig scenario_config = makeScenarioConfig(kScenarioMode, robot);
 
     RobotState state;
-    state.q << -1.0472, 2.0944; // Initial joint angles
-    state.qdot << 0.0, 0.0; // Initial joint velocities
+    state.q = scenario_config.initial_q;
+    state.qdot = scenario_config.initial_qdot;
 
     DesiredRobotState desired_state;
+    desired_state.q_d = scenario_config.initial_q_d;
+    desired_state.qdot_d = scenario_config.initial_qdot_d;
+    desired_state.q_d_prev = scenario_config.initial_q_d;
 
     // Convert radians to degrees for logging
     double q1_deg = state.q(0) * 180 / M_PI;
@@ -43,11 +48,10 @@ int main() {
     tau << 0.0, 0.0;
 
     // Actual end-effector position
-    Eigen::Vector2d xy = robot.forwardKinematics(state.q);
+    Eigen::Vector2d xy = scenario_config.initial_xy;
 
     // Desired end-effector position
-    Eigen::Vector2d xy_d;
-    xy_d << 1.0, 0;
+    Eigen::Vector2d xy_d = scenario_config.initial_xy_d;
 
     // Initialize logger
     SignalLogger logger("data", {"time", "q1", "q2", "q1_d", "q2_d", "x", "y", "tau1", "tau2","xy_d_x", "xy_d_y"});
@@ -58,10 +62,9 @@ int main() {
     next_log_time += kSimulationLogInterval;
 
     // Start simulation loop
-    for (int i = 0; i < kSimulationTotalSteps; ++i) {
+    for (int i = 0; i < KSimulationTotalSteps; ++i) {
         // Update desired end-effector position based on the scenario
-        xy_d = runFreeSpaceMotion(state.time);
-        //xy_d << 1,0;
+        xy_d = scenario_config.desired_xy_trajectory(state.time);
 
         // Get desired joint angles and velocities from inverse kinematics
         desired_state.q_d = robot.inverseKinematics(xy_d(0), xy_d(1));

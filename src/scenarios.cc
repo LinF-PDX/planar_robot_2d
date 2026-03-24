@@ -1,8 +1,31 @@
 #include "scenarios.hpp"
 
+#include <stdexcept>
+
 namespace {
 constexpr double kSegmentDurationSec = 1.0;
 constexpr double kTotalDurationSec = 4.0;
+}
+
+ScenarioConfig makeScenarioConfig(ScenarioMode mode, const RobotModel& robot) {
+    ScenarioConfig config{};
+
+    switch (mode) {
+        case ScenarioMode::FREE_SPACE_MOTION:
+            config.initial_xy = Eigen::Vector2d(1.0, 0.0);
+            config.initial_xy_d = config.initial_xy;
+            config.initial_q = robot.inverseKinematics(config.initial_xy(0), config.initial_xy(1));
+            config.initial_qdot = Eigen::Vector2d::Zero();
+            config.initial_q_d = robot.inverseKinematics(config.initial_xy_d(0), config.initial_xy_d(1));
+            config.initial_qdot_d = Eigen::Vector2d::Zero();
+            config.total_time_sec = kTotalDurationSec;
+            config.desired_xy_trajectory = &runFreeSpaceMotion;
+            return config;
+        case ScenarioMode::STIFF_ENVIRONMENT:
+        case ScenarioMode::EXTERNAL_DISTURBANCE:
+        default:
+            throw std::invalid_argument("Scenario mode is not implemented.");
+    }
 }
 
 Eigen::Vector2d runFreeSpaceMotion(double time_sec) {
