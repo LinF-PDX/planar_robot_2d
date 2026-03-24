@@ -15,5 +15,5 @@ Eigen::Vector2d Controller::computeTorque(const RobotModel& robot, const RobotSt
     // Saturate the torque to the maximum allowed value
     tau = tau.cwiseMin(Eigen::Vector2d::Constant(tau_max_)).cwiseMax(Eigen::Vector2d::Constant(-tau_max_));
 
-    return Eigen::Vector2d(tau(0), tau(1));
+    return tau;
 }

@@ -2,6 +2,7 @@
 #pragma once
 #include <Eigen/Dense>
 #include <cmath>
+#include <stdexcept>
 
 class RobotModel {
 public:
