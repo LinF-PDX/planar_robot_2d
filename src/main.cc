@@ -5,7 +5,7 @@
 #include "scenarios.hpp"
 
 namespace {
-    constexpr ScenarioMode kScenarioMode = ScenarioMode::STIFF_ENVIRONMENT;
+    constexpr ScenarioMode kScenarioMode = ScenarioMode::FREE_SPACE_MOTION;
     constexpr double kSimulationTotalTimeSec = 5.0;
     constexpr double kSimulationTimeStep = 1e-4;
     constexpr double kSimulationLogInterval = 1e-2;
@@ -18,7 +18,7 @@ namespace {
 
     constexpr double kKp = 50.0;
     constexpr double kKd = 10.0;
-    constexpr double kTauMax = 100.0;
+    constexpr double kTauMax = 50.0;
 }
 
 int main() {
@@ -77,7 +77,21 @@ int main() {
         // Compute control torque
         tau = controller.computeTorque(robot, state, desired_state);
 
-        tau_external = robot.getJacobian(state.q).transpose() * sim.wallContactForce(xy);
+        // Compute external forces based on the scenario and convert them to joint torques
+        switch (ScenarioMode(kScenarioMode)) {
+            case ScenarioMode::FREE_SPACE_MOTION:
+                tau_external.setZero();
+                break;
+            case ScenarioMode::STIFF_ENVIRONMENT:
+                tau_external = robot.getJacobian(state.q).transpose() * sim.wallContactForce(xy);
+                break;
+            case ScenarioMode::EXTERNAL_DISTURBANCE:
+                tau_external = robot.getJacobian(state.q).transpose() * sim.externalDisturbanceForce(state.time);
+                break;
+            default:
+                break;
+        }
+
         tau += tau_external;
 
         // Step the simulation
