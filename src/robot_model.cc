@@ -55,6 +55,22 @@ Eigen::Vector2d RobotModel::inverseKinematics(double x, double y) const {
     }
 }
 
+Eigen::Matrix2d RobotModel::getJacobian(const Eigen::Vector2d& q) const {
+    // Compute the Jacobian matrix of the robot
+    Eigen::Matrix2d J;
+    double s1 = std::sin(q(0));
+    double c1 = std::cos(q(0));
+    double s12 = std::sin(q(0) + q(1));
+    double c12 = std::cos(q(0) + q(1));
+
+    J(0, 0) = -l1_ * s1 - l2_ * s12;
+    J(0, 1) = -l2_ * s12;
+    J(1, 0) = l1_ * c1 + l2_ * c12;
+    J(1, 1) = l2_ * c12;
+
+    return J;
+}
+
 Eigen::Vector2d RobotModel::getCOM1Position(const Eigen::Vector2d& q) const {
     // Compute the position of the center of mass of the first link
     double x = lc1_ * std::cos(q(0));

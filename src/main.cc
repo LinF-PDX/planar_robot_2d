@@ -16,9 +16,9 @@ namespace {
     constexpr double kRobotLink1Mass = 1.0;
     constexpr double kRobotLink2Mass = 1.0;
 
-    constexpr double kKp = 5.0;
-    constexpr double kKd = 100.0;
-    constexpr double kTauMax = 50.0;
+    constexpr double kKp = 50.0;
+    constexpr double kKd = 10.0;
+    constexpr double kTauMax = 100.0;
 }
 
 int main() {
@@ -47,6 +47,9 @@ int main() {
     Eigen::Vector2d tau;
     tau << 0.0, 0.0;
 
+    Eigen::Vector2d tau_external;
+    tau_external << 0.0, 0.0;
+
     // Actual end-effector position
     Eigen::Vector2d xy = scenario_config.initial_xy;
 
@@ -73,6 +76,9 @@ int main() {
 
         // Compute control torque
         tau = controller.computeTorque(robot, state, desired_state);
+
+        tau_external = robot.getJacobian(state.q).transpose() * sim.wallContactForce(xy);
+        tau += tau_external;
 
         // Step the simulation
         sim.stepSimulation(robot, tau, state);

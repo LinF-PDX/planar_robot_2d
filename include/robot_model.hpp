@@ -9,6 +9,7 @@ public:
     RobotModel(double link1_length, double link2_length, double link1_mass, double link2_mass);
     Eigen::Vector2d forwardKinematics(const Eigen::Vector2d& q) const;
     Eigen::Vector2d inverseKinematics(double x, double y) const;
+    Eigen::Matrix2d getJacobian(const Eigen::Vector2d& q) const;
 
     Eigen::Vector2d getCOM1Position(const Eigen::Vector2d& q) const;
     Eigen::Vector2d getCOM2Position(const Eigen::Vector2d& q) const;

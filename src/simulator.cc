@@ -47,7 +47,7 @@ void Simulator::stepSimulation(const RobotModel& robot, const Eigen::Vector2d& t
 Eigen::Vector2d Simulator::wallContactForce(const Eigen::Vector2d& xy) const {
     // Simple wall contact model, assuming the wall is at x = 1.2
     const double wall_x = 1.2;
-    const double wall_stiffness = 1000.0; // Contact stiffness
+    const double wall_stiffness = 10000.0; // Contact stiffness
     Eigen::Vector2d contactForce = Eigen::Vector2d::Zero();
     if (xy(0) > wall_x) {
         contactForce(0) = -wall_stiffness * (xy(0) - wall_x);
