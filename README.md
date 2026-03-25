@@ -1,28 +1,36 @@
 # planar_robot_2d
 
-C++ project for modeling and simulating a 2-DOF planar robot arm.
+C++ simulation of a 2-DOF planar robot arm with inverse-kinematics-based trajectory tracking, joint-space impedance control, and simple environment interaction models.
 
-The current codebase includes:
+The current codebase supports:
 
 - Forward and inverse kinematics for a 2-link planar manipulator
-- A rigid-body dynamics model with mass, Coriolis, and gravity terms
-- Total energy computation
-- Time integration of the robot state using a fourth-order Runge-Kutta (RK4) simulator
-- A simple console demo in `main.cc`
+- Jacobian computation for mapping Cartesian forces to joint torques
+- Rigid-body dynamics with mass, Coriolis, and gravity terms
+- 4th order Runge-Kutta time integration
+- Scenario-based motion generation
+- A stiff wall contact model
+- A time-based external disturbance model
+- Signal logging to timestamped files in `data/`
 
 ## Project Structure
 
 ```text
 .
 |-- CMakeLists.txt
+|-- README.md
 |-- include/
+|   |-- controller.hpp
 |   |-- logger.hpp
 |   |-- robot_model.hpp
+|   |-- scenarios.hpp
 |   `-- simulator.hpp
 `-- src/
+    |-- controller.cc
     |-- logger.cc
     |-- main.cc
     |-- robot_model.cc
+    |-- scenarios.cc
     `-- simulator.cc
 ```
 
@@ -32,208 +40,231 @@ The current codebase includes:
 - A C++17-compatible compiler
 - Eigen3
 
-On Ubuntu or Debian-based systems, Eigen can typically be installed with:
+On Ubuntu or Debian-based systems:
 
 ```bash
 sudo apt install libeigen3-dev
 ```
 
-## Build
+On macOS with homebrew
+```bash
+brew install eigen
+```
+
+## Build And Run
 
 From the repository root:
 
 ```bash
 cmake -S . -B build
 cmake --build build
-```
-
-This generates the executable:
-
-```bash
 ./build/planar_robot
 ```
 
-## Current Demo
+## Current Simulation Setup
 
-The program in `src/main.cc` currently:
+The executable in [src/main.cc](/home/linfu/grad/me780/A2/planar_robot_2d/src/main.cc) currently:
 
-1. Creates a 2-link robot with:
-   - link lengths `l1 = 1.0`, `l2 = 1.0`
-   - link masses `m1 = 1.0`, `m2 = 1.0`
-2. Creates a simulator with time step `dt = 1e-4`
-3. Starts from:
-   - joint angles `q = [0, 0]`
-   - joint velocities `qdot = [0, 0]`
-4. Applies zero joint torque `tau = [0, 0]`
-5. Simulates `100000` steps
-6. Logs data to a timestamped text file in `data/`
-7. Prints the state to the console every `10000` steps
+- Creates a 2-link robot with `l1 = 1.0`, `l2 = 1.0`
+- Uses link masses `m1 = 1.0`, `m2 = 1.0`
+- Uses a fixed simulation step `dt = 1e-4`
+- Uses a joint-space PD controller with gravity compensation
+- Selects one scenario through `kScenarioMode`
+- Logs signals every `1e-2` seconds
 
-This makes the current executable a useful baseline for checking dynamic behavior and energy consistency of the simulator.
-
-## Logger Usage
-
-The logger is declared in `include/logger.hpp` and can be used directly from `main.cc`.
-
-To use it:
-
-1. Include the header:
+The active scenario is chosen in `main.cc` with:
 
 ```cpp
-#include "logger.hpp"
+constexpr ScenarioMode kScenarioMode = ScenarioMode::FREE_SPACE_MOTION;
 ```
 
-2. Create a logger with an output folder and column names:
+To run a different case, change that line to:
+
+- `ScenarioMode::FREE_SPACE_MOTION`
+- `ScenarioMode::STIFF_ENVIRONMENT`
+- `ScenarioMode::EXTERNAL_DISTURBANCE`
+
+## Scenario System
+
+Scenario configuration is centralized in [include/scenarios.hpp](/home/linfu/grad/me780/A2/planar_robot_2d/include/scenarios.hpp) and [src/scenarios.cc](/home/linfu/grad/me780/A2/planar_robot_2d/src/scenarios.cc).
+
+Each scenario is described by a `ScenarioConfig` containing:
+
+- Initial joint angles `initial_q`
+- Initial joint velocities `initial_qdot`
+- Initial desired joint angles `initial_q_d`
+- Initial desired joint velocities `initial_qdot_d`
+- Initial end-effector position `initial_xy`
+- Initial desired end-effector position `initial_xy_d`
+- Scenario duration `total_time_sec`
+- A desired end-effector trajectory function
+
+The factory function
 
 ```cpp
-SignalLogger logger(
-    "data",
-    {"time", "q1", "q2", "q1dot", "q2dot", "x", "y", "tau1", "tau2"});
+ScenarioConfig makeScenarioConfig(ScenarioMode mode, const RobotModel& robot);
 ```
 
-3. Write rows wherever you want to record data:
+is the single place where scenario-specific initialization is defined.
 
-```cpp
-logger.writeRow({state.time, state.q(0), state.q(1), state.qdot(0), state.qdot(1),
-                 xy(0), xy(1), tau(0), tau(1)});
-```
+## Implemented Scenarios
 
-4. Run the program:
+### Free Space Motion
 
-```bash
-./build/planar_robot
-```
-
-Each run creates a new space-delimited log file in `data/` with a comment-style header, for example:
+`runFreeSpaceMotion(double time_sec)` commands the end-effector to draw a rectangle:
 
 ```text
-data/simulation_20260322_155853_214.txt
+(1.0, 0.0) -> (1.5, 0.0) -> (1.5, 0.5) -> (1.0, 0.5) -> (1.0, 0.0)
 ```
 
-The current log columns are:
+The motion lasts `4` seconds, with each leg taking about `1` second.
+
+### Stiff Environment
+
+`runStiffEnvironment(double time_sec)` commands the end-effector to move along the x-axis:
 
 ```text
-time q1 q2 q1dot q2dot x y tau1 tau2
+(0.5, 0.0) -> (1.5, 0.0) -> (0.5, 0.0)
 ```
 
-This format is intended to work well with `gnuplot` and is easy to extend later with additional signals such as `q_ref`, `qdot_ref`, `x_ref`, or `y_ref`.
+The outward motion takes `2` seconds and the return motion takes `2` seconds.
 
-## Main Components
+When this scenario is active, the simulator also applies a wall contact force.
 
-### `RobotModel`
+### External Disturbance
 
-Declared in `include/robot_model.hpp` and implemented in `src/robot_model.cc`.
+`runExternalDisturbance(double time_sec)` keeps the desired end-effector position fixed at:
 
-Responsibilities:
+```text
+(1.0, 0.0)
+```
 
-- Store the robot parameters
-- Compute end-effector position with forward kinematics
-- Solve inverse kinematics for reachable Cartesian targets
-- Compute link center-of-mass positions
-- Compute the mass matrix `M(q)`
-- Compute Coriolis/centrifugal effects `C(q, qdot)`
-- Compute gravity terms `G(q)`
-- Compute forward dynamics
-- Compute total mechanical energy
+When this scenario is active, the simulator applies a time-dependent external force disturbance.
 
-The model assumes:
+## Control
 
-- A planar 2-link serial arm
-- Uniform links, with center of mass at half the link length
-- Link inertia about each link center
-- Gravity with magnitude `9.81 m/s^2`
+The controller is implemented in [src/controller.cc](/home/linfu/grad/me780/A2/planar_robot_2d/src/controller.cc).
 
-## Robot Dynamics
+It uses joint-space PD control with gravity compensation:
 
-The equations of motion used by the code follow the standard rigid-body manipulator form:
+```math
+\tau = K_p (q_d - q) + K_d (\dot{q}_d - \dot{q}) + G(q)
+```
+
+The commanded torque is then saturated elementwise by `tau_max`.
+
+In `main.cc`, Cartesian references are converted to joint references with inverse kinematics, and desired joint velocity is approximated numerically from successive desired joint positions.
+
+## Environment Interaction
+
+The environment models are implemented in [src/simulator.cc](/home/linfu/grad/me780/A2/planar_robot_2d/src/simulator.cc).
+
+### Wall Contact
+
+The wall is currently modeled as a unilateral linear spring at:
+
+```text
+x = 1.2
+```
+
+If the end-effector penetrates the wall, the simulator applies the Cartesian contact force:
+
+```math
+F_{\text{wall},x} = -k_{\text{wall}} (x - x_{\text{wall}})
+```
+
+with:
+
+- `x_wall = 1.2`
+- `k_wall = 10000`
+
+No contact force is applied when `x <= 1.2`.
+
+The Cartesian wall force is mapped into joint space in `main.cc` using:
+
+```math
+\tau_{\text{wall}} = J(q)^T F_{\text{wall}}
+```
+
+### External Disturbance
+
+The external disturbance is currently a downward Cartesian force applied between `t = 1.0 s` and `t = 1.5 s`:
+
+```text
+F = [0, -20]
+```
+
+This force is also converted into joint torques using `J(q)^T F`.
+
+## Robot Model
+
+The robot model is declared in [include/robot_model.hpp](/home/linfu/grad/me780/A2/planar_robot_2d/include/robot_model.hpp) and implemented in [src/robot_model.cc](/home/linfu/grad/me780/A2/planar_robot_2d/src/robot_model.cc).
+
+It provides:
+
+- Forward kinematics
+- Inverse kinematics
+- End-effector Jacobian
+- Center-of-mass positions
+- Mass matrix `M(q)`
+- Coriolis vector `C(q, qdot)`
+- Gravity vector `G(q)`
+- Forward dynamics
+- Total mechanical energy
+
+The equations of motion follow:
 
 ```math
 M(q)\ddot{q} + C(q,\dot{q}) + G(q) = \tau
 ```
 
-where:
-
-- `q = [q1, q2]^T` is the joint-angle vector
-- `qdot = [q1dot, q2dot]^T` is the joint-velocity vector
-- `qddot = [q1ddot, q2ddot]^T` is the joint-acceleration vector
-- `M(q)` is the mass matrix
-- `C(q, qdot)` is the Coriolis/centrifugal vector
-- `G(q)` is the gravity vector
-- `tau` is the applied joint-torque vector
-
-The simulator computes forward dynamics as:
+and the forward dynamics are computed as:
 
 ```math
 \ddot{q} = M(q)^{-1}\left(\tau - C(q,\dot{q}) - G(q)\right)
 ```
 
-For the current 2-link model, the implemented mass matrix is:
+## Numerical Integration
 
-```math
-M(q) =
-\begin{bmatrix}
-I_1 + I_2 + m_1 l_{c1}^2 + m_2 \left(l_1^2 + l_{c2}^2 + 2 l_1 l_{c2}\cos q_2\right) &
-I_2 + m_2 \left(l_{c2}^2 + l_1 l_{c2}\cos q_2\right) \\
-I_2 + m_2 \left(l_{c2}^2 + l_1 l_{c2}\cos q_2\right) &
-I_2 + m_2 l_{c2}^2
-\end{bmatrix}
-```
+The simulator advances the robot state with fourth-order Runge-Kutta integration in [src/simulator.cc](/home/linfu/grad/me780/A2/planar_robot_2d/src/simulator.cc).
 
-The Coriolis/centrifugal vector is:
-
-```math
-C(q,\dot{q}) =
-\begin{bmatrix}
--h \dot{q}_2 \left(2\dot{q}_1 + \dot{q}_2\right) \\
-h \dot{q}_1^2
-\end{bmatrix},
-\qquad
-h = m_2 l_1 l_{c2}\sin q_2
-```
-
-The gravity vector is:
-
-```math
-G(q) =
-\begin{bmatrix}
-\left(m_1 l_{c1} + m_2 l_1\right) g \cos q_1 + m_2 l_{c2} g \cos(q_1 + q_2) \\
-m_2 l_{c2} g \cos(q_1 + q_2)
-\end{bmatrix}
-```
-
-In this codebase:
-
-- `l1`, `l2` are the link lengths
-- `lc1 = l1 / 2` and `lc2 = l2 / 2` are the center-of-mass locations
-- `I1 = (1/12) m1 l1^2` and `I2 = (1/12) m2 l2^2` assume uniform slender links
-
-These expressions are implemented in [src/robot_model.cc](/home/linfu/grad/me780/A2/planar_robot_2d/src/robot_model.cc).
-
-### `Simulator`
-
-Declared in `include/simulator.hpp` and implemented in `src/simulator.cc`.
-
-Responsibilities:
-
-- Store the simulation time step
-- Advance the robot state using RK4 integration
-- Track simulation time through the `RobotState` struct
-
-`RobotState` contains:
+`RobotState` stores:
 
 - `q`: joint angles
 - `qdot`: joint velocities
-- `time`: simulation time
+- `time`: current simulation time
 
-## Notes on Inverse Kinematics
+`DesiredRobotState` stores:
+
+- `q_d`: desired joint angles
+- `qdot_d`: desired joint velocities
+- `q_d_prev`: previous desired joint angles for numerical differentiation
+
+## Logging
+
+Each run creates a timestamped log file in `data/`.
+
+The current logger records:
+
+```text
+time q1 q2 q1_d q2_d x y tau1 tau2 xy_d_x xy_d_y
+```
+
+This makes it easy to compare:
+
+- actual vs desired joint motion
+- actual vs desired end-effector position
+- controller effort over time
+
+## Notes On Inverse Kinematics
 
 The current inverse kinematics implementation:
 
-- Rejects targets outside the manipulator workspace
+- Rejects targets outside the workspace
 - Rejects targets with `x < 0`
-- Selects a solution whose first joint angle stays within `[-pi/2, pi/2]`
+- Chooses a solution with `q1` constrained to `[-pi/2, pi/2]`
 
-That means the current solver is intentionally restricted and does not yet expose all mathematically valid elbow-up and elbow-down solutions.
+So the solver is intentionally restricted and does not expose every possible elbow-up and elbow-down solution.
 
 ## License
 
