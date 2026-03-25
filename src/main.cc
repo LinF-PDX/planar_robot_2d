@@ -5,19 +5,19 @@
 #include "scenarios.hpp"
 
 namespace {
-    constexpr ScenarioMode kScenarioMode = ScenarioMode::FREE_SPACE_MOTION;
+    constexpr ScenarioMode kScenarioMode = ScenarioMode::STIFF_ENVIRONMENT;
     constexpr double kSimulationTotalTimeSec = 5.0;
     constexpr double kSimulationTimeStep = 1e-4;
     constexpr double kSimulationLogInterval = 1e-2;
-    constexpr double KSimulationTotalSteps = static_cast<int>(kSimulationTotalTimeSec / kSimulationTimeStep);
+    constexpr int KSimulationTotalSteps = static_cast<int>(kSimulationTotalTimeSec / kSimulationTimeStep);
 
     constexpr double kRobotLink1Length = 1.0;
     constexpr double kRobotLink2Length = 1.0;
     constexpr double kRobotLink1Mass = 1.0;
     constexpr double kRobotLink2Mass = 1.0;
 
-    constexpr double kKp = 10.0;
-    constexpr double kKd = 50.0;
+    constexpr double kKp = 5.0;
+    constexpr double kKd = 100.0;
     constexpr double kTauMax = 50.0;
 }
 

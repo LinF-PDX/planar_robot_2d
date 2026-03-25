@@ -22,3 +22,5 @@ struct ScenarioConfig {
 ScenarioConfig makeScenarioConfig(ScenarioMode mode, const RobotModel& robot);
 
 Eigen::Vector2d runFreeSpaceMotion(double time_sec);
+Eigen::Vector2d runStiffEnvironment(double time_sec);
+Eigen::Vector2d runExternalDisturbance(double time_sec);
