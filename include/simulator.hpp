@@ -18,6 +18,8 @@ class Simulator {
 public:
     explicit Simulator(double dt);
     void stepSimulation(const RobotModel& robot, const Eigen::Vector2d& tau, RobotState& state) const;
+    Eigen::Vector2d wallContactForce(const Eigen::Vector2d& xy) const;
+    Eigen::Vector2d externalDisturbanceForce(double time_sec) const;
 
 private:
     double dt_; // Time step for the simulation

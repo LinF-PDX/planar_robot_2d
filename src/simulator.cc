@@ -43,3 +43,25 @@ void Simulator::stepSimulation(const RobotModel& robot, const Eigen::Vector2d& t
     // Update time
     state.time += h;
 }
+
+Eigen::Vector2d Simulator::wallContactForce(const Eigen::Vector2d& xy) const {
+    // Simple wall contact model, assuming the wall is at x = 1.2
+    const double wall_x = 1.2;
+    const double wall_stiffness = 1000.0; // Contact stiffness
+    Eigen::Vector2d contactForce = Eigen::Vector2d::Zero();
+    if (xy(0) > wall_x) {
+        contactForce(0) = -wall_stiffness * (xy(0) - wall_x);
+    }
+    return contactForce;
+}
+
+Eigen::Vector2d Simulator::externalDisturbanceForce(double time_sec) const {
+    // Apply impluse force in -y direction at t = 1.0s for 0.5s
+    Eigen::Vector2d disturbanceForce = Eigen::Vector2d::Zero();
+    if (time_sec >= 1.0 && time_sec < 1.5) {
+        disturbanceForce(1) = -10.0; // Impulse force in -y direction
+    } else {
+        disturbanceForce.setZero();
+    }
+    return disturbanceForce;
+}
