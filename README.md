@@ -63,7 +63,7 @@ cmake --build build
 
 ## Current Simulation Setup
 
-The executable in [src/main.cc](/home/linfu/grad/me780/A2/planar_robot_2d/src/main.cc) currently:
+The executable in [src/main.cc](src/main.cc) currently:
 
 - Creates a 2-link robot with `l1 = 1.0`, `l2 = 1.0`
 - Uses link masses `m1 = 1.0`, `m2 = 1.0`
@@ -86,7 +86,7 @@ To run a different case, change that line to:
 
 ## Scenario System
 
-Scenario configuration is centralized in [include/scenarios.hpp](/home/linfu/grad/me780/A2/planar_robot_2d/include/scenarios.hpp) and [src/scenarios.cc](/home/linfu/grad/me780/A2/planar_robot_2d/src/scenarios.cc).
+Scenario configuration is centralized in [include/scenarios.hpp](include/scenarios.hpp) and [src/scenarios.cc](src/scenarios.cc).
 
 Each scenario is described by a `ScenarioConfig` containing:
 
@@ -143,7 +143,7 @@ When this scenario is active, the simulator applies a time-dependent external fo
 
 ## Control
 
-The controller is implemented in [src/controller.cc](/home/linfu/grad/me780/A2/planar_robot_2d/src/controller.cc).
+The controller is implemented in [src/controller.cc](src/controller.cc).
 
 It uses joint-space PD control with gravity compensation:
 
@@ -157,7 +157,7 @@ In `main.cc`, Cartesian references are converted to joint references with invers
 
 ## Environment Interaction
 
-The environment models are implemented in [src/simulator.cc](/home/linfu/grad/me780/A2/planar_robot_2d/src/simulator.cc).
+The environment models are implemented in [src/simulator.cc](src/simulator.cc).
 
 ### Wall Contact
 
@@ -198,7 +198,7 @@ This force is also converted into joint torques using `J(q)^T F`.
 
 ## Robot Model
 
-The robot model is declared in [include/robot_model.hpp](/home/linfu/grad/me780/A2/planar_robot_2d/include/robot_model.hpp) and implemented in [src/robot_model.cc](/home/linfu/grad/me780/A2/planar_robot_2d/src/robot_model.cc).
+The robot model is declared in [include/robot_model.hpp](include/robot_model.hpp) and implemented in [src/robot_model.cc](src/robot_model.cc).
 
 It provides:
 
