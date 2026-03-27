@@ -1,11 +1,5 @@
 #include "scenarios.hpp"
-
 #include <stdexcept>
-
-namespace {
-    constexpr double kSegmentDurationSec = 1.0;
-    constexpr double kTotalDurationSec = 4.0;
-}
 
 ScenarioConfig makeScenarioConfig(ScenarioMode mode, const RobotModel& robot) {
     ScenarioConfig config{};
@@ -18,7 +12,6 @@ ScenarioConfig makeScenarioConfig(ScenarioMode mode, const RobotModel& robot) {
             config.initial_qdot = Eigen::Vector2d::Zero();
             config.initial_q_d = robot.inverseKinematics(config.initial_xy_d(0), config.initial_xy_d(1));
             config.initial_qdot_d = Eigen::Vector2d::Zero();
-            config.total_time_sec = kTotalDurationSec;
             config.desired_xy_trajectory = &runFreeSpaceMotion;
             return config;
         case ScenarioMode::STIFF_ENVIRONMENT:
@@ -28,7 +21,6 @@ ScenarioConfig makeScenarioConfig(ScenarioMode mode, const RobotModel& robot) {
             config.initial_qdot = Eigen::Vector2d::Zero();
             config.initial_q_d = robot.inverseKinematics(config.initial_xy_d(0), config.initial_xy_d(1));
             config.initial_qdot_d = Eigen::Vector2d::Zero();
-            config.total_time_sec = kTotalDurationSec;
             config.desired_xy_trajectory = &runStiffEnvironment;
             return config;
         case ScenarioMode::EXTERNAL_DISTURBANCE:
@@ -38,7 +30,6 @@ ScenarioConfig makeScenarioConfig(ScenarioMode mode, const RobotModel& robot) {
             config.initial_qdot = Eigen::Vector2d::Zero();
             config.initial_q_d = robot.inverseKinematics(config.initial_xy_d(0), config.initial_xy_d(1));
             config.initial_qdot_d = Eigen::Vector2d::Zero();
-            config.total_time_sec = kTotalDurationSec;
             config.desired_xy_trajectory = &runExternalDisturbance;
             return config;
         default:
@@ -47,31 +38,31 @@ ScenarioConfig makeScenarioConfig(ScenarioMode mode, const RobotModel& robot) {
 }
 
 Eigen::Vector2d runFreeSpaceMotion(double time_sec) {
-    if (time_sec <= 0.0 || time_sec >= kTotalDurationSec) {
+    if (time_sec <= 0.0 || time_sec >= 4.0) {
         return Eigen::Vector2d(1.0, 0.0);
     }
 
-    if (time_sec < 1.0 * kSegmentDurationSec) {
-        const double alpha = time_sec / kSegmentDurationSec;
+    if (time_sec < 1.0 * 1) {
+        const double alpha = time_sec / 1;
         return Eigen::Vector2d(1.0 + 0.5 * alpha, 0.0);
     }
 
-    if (time_sec < 2.0 * kSegmentDurationSec) {
-        const double alpha = (time_sec - 1.0 * kSegmentDurationSec) / kSegmentDurationSec;
+    if (time_sec < 2.0 * 1) {
+        const double alpha = (time_sec - 1.0 * 1) / 1;
         return Eigen::Vector2d(1.5, 0.5 * alpha);
     }
 
-    if (time_sec < 3.0 * kSegmentDurationSec) {
-        const double alpha = (time_sec - 2.0 * kSegmentDurationSec) / kSegmentDurationSec;
+    if (time_sec < 3.0 * 1) {
+        const double alpha = (time_sec - 2.0 * 1) / 1;
         return Eigen::Vector2d(1.5 - 0.5 * alpha, 0.5);
     }
 
-    const double alpha = (time_sec - 3.0 * kSegmentDurationSec) / kSegmentDurationSec;
+    const double alpha = (time_sec - 3.0 * 1) / 1;
     return Eigen::Vector2d(1.0, 0.5 - 0.5 * alpha);
 }
 
 Eigen::Vector2d runStiffEnvironment(double time_sec) {
-    if (time_sec <= 0.0 || time_sec >= kTotalDurationSec) {
+    if (time_sec <= 0.0 || time_sec >= 4.0) {
         return Eigen::Vector2d(0.5, 0.0);
     }
 

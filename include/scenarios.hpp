@@ -15,7 +15,6 @@ struct ScenarioConfig {
     Eigen::Vector2d initial_qdot_d;
     Eigen::Vector2d initial_xy;
     Eigen::Vector2d initial_xy_d;
-    double total_time_sec;
     Eigen::Vector2d (*desired_xy_trajectory)(double time_sec);
 };
 
