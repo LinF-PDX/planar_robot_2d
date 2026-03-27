@@ -109,7 +109,6 @@ Each scenario is described by a `ScenarioConfig` containing:
 - Initial desired joint velocities `initial_qdot_d`
 - Initial end-effector position `initial_xy`
 - Initial desired end-effector position `initial_xy_d`
-- Scenario duration `total_time_sec`
 - A desired end-effector trajectory function
 
 The factory function
