@@ -81,7 +81,7 @@ The executable in [src/main.cc](src/main.cc) currently:
 - Creates a 2-link robot with `l1 = 1.0`, `l2 = 1.0`
 - Uses link masses `m1 = 1.0`, `m2 = 1.0`
 - Uses a fixed simulation step `dt = 1e-4`
-- Uses a joint-space PD controller with gravity compensation
+- Uses a joint-space impedance controller with mass, Coriolis, and gravity compensation
 - Selects one scenario through `kScenarioMode`
 - Logs signals every `1e-2` seconds
 
@@ -188,15 +188,15 @@ This force is also converted into joint torques using `J(q)^T F`.
 
 The controller is implemented in [src/controller.cc](src/controller.cc).
 
-It uses joint-space PD control with gravity compensation:
+It uses a joint-space impedance / inverse-dynamics-style control law:
 
 ```math
-\tau = K_p (q_d - q) + K_d (\dot{q}_d - \dot{q}) + G(q)
+\tau = M(q)\ddot{q}_d + C(q,\dot{q}) + G(q) + K_p (q_d - q) + K_d (\dot{q}_d - \dot{q})
 ```
 
 The commanded torque is then saturated elementwise by `tau_max`.
 
-In `main.cc`, Cartesian references are converted to joint references with inverse kinematics, and desired joint velocity is approximated numerically from successive desired joint positions.
+In `main.cc`, Cartesian references are converted to joint references with inverse kinematics. The desired joint velocity is approximated numerically from successive desired joint positions, and the desired joint acceleration is approximated from successive desired joint velocities using the simulation timestep.
 
 ## Robot Model
 
@@ -344,16 +344,14 @@ To use it:
 2. Create a logger with an output folder and column names:
 
 ```cpp
-SignalLogger logger(
-    "data",
-    {"time", "q1", "q2", "q1_d", "q2_d", "x", "y", "tau1", "tau2", "xy_d_x", "xy_d_y"});
+ SignalLogger logger("data", {"time", "q1", "q2", "q1_d", "q2_d", "tau1_ext", "tau2_ext", "tau1", "tau2","x","y", "xy_d_x", "xy_d_y"});
 ```
 
 3. Write rows wherever you want to record data:
 
 ```cpp
-logger.writeRow({state.time, q1_deg, q2_deg, q1_d_deg, q2_d_deg,
-                 xy(0), xy(1), tau(0), tau(1), xy_d(0), xy_d(1)});
+logger.writeRow({state.time, q1_deg, q2_deg, q1_d_deg, q2_d_deg, tau_external(0), tau_external(1), tau(0), tau(1), 
+                state.xy(0), state.xy(1), desired_state.xy_d(0), desired_state.xy_d(1)});
 ```
 
 4. Run the program:
