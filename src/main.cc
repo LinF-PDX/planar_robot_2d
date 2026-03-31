@@ -52,13 +52,16 @@ int main() {
     Eigen::Vector2d tau_external;
     tau_external << 0.0, 0.0;
 
+    Eigen::Vector2d tau_controller;
+    tau_controller << 0.0, 0.0;
+
     // Initialize logger
-    SignalLogger logger("data", {"time", "q1", "q2", "q1_d", "q2_d", "tau1_ext", "tau2_ext", "tau1", "tau2","x","y", "xy_d_x", "xy_d_y"});
+    SignalLogger logger("data", {"time", "q1", "q2", "q1_d", "q2_d", "tau1_ext", "tau2_ext", "tau1", "tau2","x","y", "xy_d_x", "xy_d_y", "tau1_ctrl", "tau2_ctrl"});
 
     // Write first log entry
     double next_log_time = 0.0;
     logger.writeRow({state.time, q1_deg, q2_deg, q1_d_deg, q2_d_deg, tau_external(0), tau_external(1), tau(0), tau(1), 
-                state.xy(0), state.xy(1), desired_state.xy_d(0), desired_state.xy_d(1)});
+                state.xy(0), state.xy(1), desired_state.xy_d(0), desired_state.xy_d(1), tau_controller(0), tau_controller(1)});
     next_log_time += kSimulationLogInterval;
 
     // Start simulation loop
@@ -72,7 +75,7 @@ int main() {
         desired_state.q_d_prev = desired_state.q_d;
 
         // Compute control torque
-        tau = controller.computeTorque(robot, state, desired_state, kSimulationTimeStep);
+        tau_controller = controller.computeTorque(robot, state, desired_state, kSimulationTimeStep);
         desired_state.qdot_d_prev = desired_state.qdot_d;
 
         // Compute external forces based on the scenario and convert them to joint torques
@@ -90,7 +93,7 @@ int main() {
                 break;
         }
 
-        tau += tau_external;
+        tau = tau_controller + tau_external;
 
         // Step the simulation
         // tau << 0.0, 0.0; // Uncomment this line for free fall
@@ -108,7 +111,7 @@ int main() {
 
         if (state.time + 1e-12 >= next_log_time) {
             logger.writeRow({state.time, q1_deg, q2_deg, q1_d_deg, q2_d_deg, tau_external(0), tau_external(1), tau(0), tau(1), 
-                        state.xy(0), state.xy(1), desired_state.xy_d(0), desired_state.xy_d(1)});
+                        state.xy(0), state.xy(1), desired_state.xy_d(0), desired_state.xy_d(1), tau_controller(0), tau_controller(1)});
             next_log_time += kSimulationLogInterval;
         }
 
