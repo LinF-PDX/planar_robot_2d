@@ -4,7 +4,7 @@
 class Controller {
 public:
     Controller(double Kp, double Kd, double tau_max);
-    Eigen::Vector2d computeTorque(const RobotModel& robot, const RobotState& state, const DesiredRobotState& desired_state) const;
+    Eigen::Vector2d computeTorque(const RobotModel& robot, const RobotState& state, const DesiredRobotState& desired_state, const double dt) const;
 
 private:
     double Kp_;

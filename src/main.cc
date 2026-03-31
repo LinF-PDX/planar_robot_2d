@@ -30,11 +30,13 @@ int main() {
     RobotState state;
     state.q = scenario_config.initial_q;
     state.qdot = scenario_config.initial_qdot;
+    state.xy = scenario_config.initial_xy;
 
     DesiredRobotState desired_state;
     desired_state.q_d = scenario_config.initial_q_d;
     desired_state.qdot_d = scenario_config.initial_qdot_d;
     desired_state.q_d_prev = scenario_config.initial_q_d;
+    desired_state.xy_d = scenario_config.initial_xy_d;
 
     // Convert radians to degrees for logging
     double q1_deg = state.q(0) * 180 / M_PI;
@@ -50,32 +52,28 @@ int main() {
     Eigen::Vector2d tau_external;
     tau_external << 0.0, 0.0;
 
-    // Actual end-effector position
-    Eigen::Vector2d xy = scenario_config.initial_xy;
-
-    // Desired end-effector position
-    Eigen::Vector2d xy_d = scenario_config.initial_xy_d;
-
     // Initialize logger
     SignalLogger logger("data", {"time", "q1", "q2", "q1_d", "q2_d", "tau1_ext", "tau2_ext", "tau1", "tau2","x","y", "xy_d_x", "xy_d_y"});
 
     // Write first log entry
     double next_log_time = 0.0;
-    logger.writeRow({state.time, q1_deg, q2_deg, q1_d_deg, q2_d_deg, tau_external(0), tau_external(1), tau(0), tau(1), xy(0), xy(1), xy_d(0), xy_d(1)});
+    logger.writeRow({state.time, q1_deg, q2_deg, q1_d_deg, q2_d_deg, tau_external(0), tau_external(1), tau(0), tau(1), 
+                state.xy(0), state.xy(1), desired_state.xy_d(0), desired_state.xy_d(1)});
     next_log_time += kSimulationLogInterval;
 
     // Start simulation loop
     for (int i = 0; i < kSimulationTotalSteps; ++i) {
         // Update desired end-effector position based on the scenario
-        xy_d = scenario_config.desired_xy_trajectory(state.time);
+        desired_state.xy_d = scenario_config.desired_xy_trajectory(state.time);
 
         // Get desired joint angles and velocities from inverse kinematics
-        desired_state.q_d = robot.inverseKinematics(xy_d(0), xy_d(1));
+        desired_state.q_d = robot.inverseKinematics(desired_state.xy_d(0), desired_state.xy_d(1));
         desired_state.qdot_d = (desired_state.q_d - desired_state.q_d_prev) / kSimulationTimeStep; // Numerical differentiation
         desired_state.q_d_prev = desired_state.q_d;
 
         // Compute control torque
-        tau = controller.computeTorque(robot, state, desired_state);
+        tau = controller.computeTorque(robot, state, desired_state, kSimulationTimeStep);
+        desired_state.qdot_d_prev = desired_state.qdot_d;
 
         // Compute external forces based on the scenario and convert them to joint torques
         switch (ScenarioMode(kScenarioMode)) {
@@ -83,7 +81,7 @@ int main() {
                 tau_external.setZero();
                 break;
             case ScenarioMode::STIFF_ENVIRONMENT:
-                tau_external = robot.getJacobian(state.q).transpose() * sim.wallContactForce(xy);
+                tau_external = robot.getJacobian(state.q).transpose() * sim.wallContactForce(state.xy);
                 break;
             case ScenarioMode::EXTERNAL_DISTURBANCE:
                 tau_external = robot.getJacobian(state.q).transpose() * sim.externalDisturbanceForce(state.time);
@@ -99,7 +97,7 @@ int main() {
         sim.stepSimulation(robot, tau, state);
 
         // Update actual end-effector position
-        xy = robot.forwardKinematics(state.q);
+        state.xy = robot.forwardKinematics(state.q);
 
         q1_deg = state.q(0) * 180 / M_PI;
         q2_deg = state.q(1) * 180 / M_PI;
@@ -109,14 +107,15 @@ int main() {
         q2_d_deg = desired_state.q_d(1) * 180 / M_PI;
 
         if (state.time + 1e-12 >= next_log_time) {
-            logger.writeRow({state.time, q1_deg, q2_deg, q1_d_deg, q2_d_deg, tau_external(0), tau_external(1), tau(0), tau(1), xy(0), xy(1), xy_d(0), xy_d(1)});
+            logger.writeRow({state.time, q1_deg, q2_deg, q1_d_deg, q2_d_deg, tau_external(0), tau_external(1), tau(0), tau(1), 
+                        state.xy(0), state.xy(1), desired_state.xy_d(0), desired_state.xy_d(1)});
             next_log_time += kSimulationLogInterval;
         }
 
         if (i % 10000 == 0) {
             std::cout << "t = " << state.time
                       << ", q in degree = [" << q1_deg << ", " << q2_deg << "]"
-                      << ", End-effector position = [" << xy(0) << ", " << xy(1) << "]"
+                      << ", End-effector position = [" << state.xy(0) << ", " << state.xy(1) << "]"
                       << ", Total Energy = " << robot.getTotalEnergy(state.q, state.qdot)
                       << std::endl;
         }

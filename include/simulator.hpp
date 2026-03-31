@@ -5,6 +5,7 @@
 struct RobotState {
     Eigen::Vector2d q = Eigen::Vector2d::Zero(); // Joint angles
     Eigen::Vector2d qdot = Eigen::Vector2d::Zero(); // Joint velocities
+    Eigen::Vector2d xy = Eigen::Vector2d::Zero(); // End-effector position
     double time = 0.0; // Current time
 };
 
@@ -12,6 +13,8 @@ struct DesiredRobotState {
     Eigen::Vector2d q_d = Eigen::Vector2d::Zero(); // Desired joint angles
     Eigen::Vector2d qdot_d = Eigen::Vector2d::Zero(); // Desired joint velocities
     Eigen::Vector2d q_d_prev = Eigen::Vector2d::Zero(); // Previous desired joint angles (for numerical differentiation)
+    Eigen::Vector2d qdot_d_prev = Eigen::Vector2d::Zero(); // Previous desired joint velocities (for numerical differentiation)
+    Eigen::Vector2d xy_d = Eigen::Vector2d::Zero(); // Desired end-effector position
 };
 
 class Simulator {
