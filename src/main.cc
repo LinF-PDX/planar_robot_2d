@@ -5,7 +5,7 @@
 #include "scenarios.hpp"
 
 namespace {
-    constexpr ScenarioMode kScenarioMode = ScenarioMode::FREE_SPACE_MOTION;
+    constexpr ScenarioMode kScenarioMode = ScenarioMode::EXTERNAL_DISTURBANCE;
     constexpr double kSimulationTotalTimeSec = 5.0;
     constexpr double kSimulationTimeStep = 1e-4;
     constexpr double kSimulationLogInterval = 1e-2;
@@ -55,13 +55,18 @@ int main() {
     Eigen::Vector2d tau_controller;
     tau_controller << 0.0, 0.0;
 
+    Eigen::Vector2d interaction_force;
+    interaction_force << 0.0, 0.0;
+
     // Initialize logger
-    SignalLogger logger("data", {"time", "q1", "q2", "q1_d", "q2_d", "tau1_ext", "tau2_ext", "tau1", "tau2","x","y", "xy_d_x", "xy_d_y", "tau1_ctrl", "tau2_ctrl"});
+    SignalLogger logger("data", {"time", "q1", "q2", "q1_d", "q2_d", "tau1_ext", "tau2_ext", 
+                "tau1", "tau2","x","y", "xy_d_x", "xy_d_y", "tau1_ctrl", "tau2_ctrl", "interaction_force_norm"});
 
     // Write first log entry
     double next_log_time = 0.0;
     logger.writeRow({state.time, q1_deg, q2_deg, q1_d_deg, q2_d_deg, tau_external(0), tau_external(1), tau(0), tau(1), 
-                state.xy(0), state.xy(1), desired_state.xy_d(0), desired_state.xy_d(1), tau_controller(0), tau_controller(1)});
+                state.xy(0), state.xy(1), desired_state.xy_d(0), desired_state.xy_d(1), 
+                tau_controller(0), tau_controller(1), interaction_force.norm()});
     next_log_time += kSimulationLogInterval;
 
     // Start simulation loop
@@ -95,6 +100,9 @@ int main() {
 
         tau = tau_controller + tau_external;
 
+        // Compute interaction force
+        interaction_force = robot.getJacobian(state.q).transpose().inverse() * tau;
+
         // Step the simulation
         // tau << 0.0, 0.0; // Uncomment this line for free fall
         sim.stepSimulation(robot, tau, state);
@@ -111,7 +119,8 @@ int main() {
 
         if (state.time + 1e-12 >= next_log_time) {
             logger.writeRow({state.time, q1_deg, q2_deg, q1_d_deg, q2_d_deg, tau_external(0), tau_external(1), tau(0), tau(1), 
-                        state.xy(0), state.xy(1), desired_state.xy_d(0), desired_state.xy_d(1), tau_controller(0), tau_controller(1)});
+                        state.xy(0), state.xy(1), desired_state.xy_d(0), desired_state.xy_d(1), 
+                        tau_controller(0), tau_controller(1), interaction_force.norm()});
             next_log_time += kSimulationLogInterval;
         }
 
